@@ -16,15 +16,17 @@ jobs:
 
       - name: Create Platform Zip Archive
         run: |
-          # Step into the folder containing the actual core files
-          cd mhetlive-avr-1.1.x/1.1.x
+          # 1. Create a clean staging directory with a root folder named after the Git tag
+          mkdir -p staging/${{ github.ref_name }}
           
-          # Zip everything inside this directory directly into the workspace root
-          zip -r ../../mhetlive-avr-${{ github.ref_name }}.zip .
+          # 2. Copy all your core files into this tag-named root folder
+          cp -r mhetlive-avr-1.1.x/1.1.x/* staging/${{ github.ref_name }}/
           
-          # Navigate back to the root workspace
-          cd ../..
-          
+          # 3. Step into the staging directory so the ZIP only contains '<tag_name>/' at its root
+          cd staging
+          zip -r ../mhetlive-avr-${{ github.ref_name }}.zip ${{ github.ref_name }}
+          cd ..          # Step into the folder containing the actual core files
+        
           # Calculate the SHA-256 hash of the created zip file
           echo "ZIP_SHA256=$(sha256sum mhetlive-avr-${{ github.ref_name }}.zip | awk '{print $1}')" >> $GITHUB_ENV
           echo "ZIP_SIZE=$(stat -c%s mhetlive-avr-${{ github.ref_name }}.zip)" >> $GITHUB_ENV
