@@ -1,0 +1,53 @@
+name: Package and Release Board Platform
+
+on:
+  push:
+    tags:
+      - 'v*' # Triggers only when you push a tag like v1.0.1, v1.1.0, etc.
+
+jobs:
+  build-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create Platform Zip Archive
+        run: |
+          # Step into the folder containing the actual core files
+          cd mhetlive-avr-1.1.x/1.1.x
+          
+          # Zip everything inside this directory directly into the workspace root
+          zip -r ../../mhetlive-avr-${{ github.ref_name }}.zip .
+          
+          # Navigate back to the root workspace
+          cd ../..
+          
+          # Calculate the SHA-256 hash of the created zip file
+          echo "ZIP_SHA256=$(sha256sum mhetlive-avr-${{ github.ref_name }}.zip | awk '{print $1}')" >> $GITHUB_ENV
+          echo "ZIP_SIZE=$(stat -c%s mhetlive-avr-${{ github.ref_name }}.zip)" >> $GITHUB_ENV
+
+      - name: Print Details for your package_mhetlive_index.json
+        run: |
+          echo "============================================="
+          echo "     USE THESE DETAILS IN YOUR JSON INDEX     "
+          echo "============================================="
+          echo "URL: https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/mhetlive-avr-${{ github.ref_name }}.zip"
+          echo "SHA-256 Checksum: SHA-256:${{ env.ZIP_SHA256 }}"
+          echo "Size (Bytes): ${{ env.ZIP_SIZE }}"
+          echo "============================================="
+
+      - name: Create GitHub Release and Upload Asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: mhetlive-avr-${{ github.ref_name }}.zip
+          name: Release ${{ github.ref_name }}
+          body: |
+            ### Automated Board Release `${{ github.ref_name }}`
+            
+            Use these parameters to update your `package_mhetlive_index.json`:
+            - **URL**: `https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/mhetlive-avr-${{ github.ref_name }}.zip`
+            - **Checksum**: `SHA-256:${{ env.ZIP_SHA256 }}`
+            - **Size**: `${{ env.ZIP_SIZE }}` bytes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
