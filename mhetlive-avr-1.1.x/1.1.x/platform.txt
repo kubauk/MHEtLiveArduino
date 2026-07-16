@@ -70,7 +70,7 @@ tools.micronucleus.cmd.path={runtime.tools.micronucleus.path}/micronucleus
 tools.micronucleus.upload.params.verbose=
 tools.micronucleus.upload.params.quiet=
 
-tools.micronucleus.upload.pattern="{cmd.path}" --timeout 60 "{build.path}/{build.project_name}.hex"# AVR Uploader/Programmers tools
+tools.micronucleus.upload.pattern="{cmd.path}" --timeout 60 {build.path}/{build.project_name}.hex
  
 # USB Default Flags
 # Default blank usb manufacturer will be filled it at compile time
